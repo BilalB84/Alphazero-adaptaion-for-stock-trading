@@ -80,7 +80,7 @@ def train(model, env, mcts, num_iterations, batch_size, save_path="model.pth"):
             loss = value_loss + policy_loss
             loss.backward()
             
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.7)  # Try different values like 0.3 or 0.7
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.7)
             optimizer.step()
             
             iteration_loss += loss.item()
@@ -91,11 +91,9 @@ def train(model, env, mcts, num_iterations, batch_size, save_path="model.pth"):
 
         print(f"Iteration {iteration + 1}/{num_iterations}, Loss: {iteration_loss:.4f}, Profit: {cumulative_profit:.4f}, Reward: {cumulative_reward:.4f}")
 
-        # Save model at certain checkpoints
         if (iteration + 1) % 1000 == 0:
             torch.save(model.state_dict(), f"{save_path}_checkpoint_{iteration + 1}.pth")
         
-        # Free memory manually
         del states_tensor, mcts_probs_tensor, rewards_tensor
         gc.collect()
     
@@ -111,7 +109,6 @@ def train(model, env, mcts, num_iterations, batch_size, save_path="model.pth"):
 
 
 def plot_training_progress(total_losses, total_profits, total_rewards, num_iterations):
-    # Plot for Training Loss
     plt.figure(figsize=(20, 6))
     plt.plot(range(1, num_iterations + 1), total_losses, label="Loss")
     plt.xlabel("Iteration")
@@ -120,7 +117,6 @@ def plot_training_progress(total_losses, total_profits, total_rewards, num_itera
     plt.legend()
     plt.show()
 
-    # Plot for Cumulative Profit
     plt.figure(figsize=(20, 6))
     plt.plot(range(1, num_iterations + 1), total_profits, label="Cumulative Profit", color="orange")
     plt.xlabel("Iteration")
@@ -129,7 +125,6 @@ def plot_training_progress(total_losses, total_profits, total_rewards, num_itera
     plt.legend()
     plt.show()
 
-    # Plot for Cumulative Reward
     plt.figure(figsize=(20, 6))
     plt.plot(range(1, num_iterations + 1), total_rewards, label="Cumulative Reward", color="green")
     plt.xlabel("Iteration")

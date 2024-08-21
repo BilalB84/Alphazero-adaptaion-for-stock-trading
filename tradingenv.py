@@ -3,16 +3,13 @@ import gym
 from gym import spaces
 
 class StockTradingEnv(gym.Env):
-    """A custom environment for stock trading using historical data."""
     
     def __init__(self, df):
         super(StockTradingEnv, self).__init__()
         
         self.df = df
-        self.current_step = 0  # Initialize the current step
-        self.net_worth = 0  # Example of another initialization
-
-        # Initial conditions
+        self.current_step = 0 
+        self.net_worth = 0  
         self.initial_balance = 10000
         self.balance = self.initial_balance
         self.holdings = 0
@@ -20,16 +17,13 @@ class StockTradingEnv(gym.Env):
         self.max_net_worth = self.initial_balance
         self.trades = []
 
-        # Define action space: 0 = hold, 1 = buy, 2 = sell
         self.action_space = spaces.Discrete(3)
 
-        # Define observation space
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=(7,), dtype=np.float32
         )
         
     def _get_observation(self):
-        # Check if self.current_step is within the valid range of the DataFrame index
         if self.current_step < 0 or self.current_step >= len(self.df):
             raise ValueError(f"Invalid step index: {self.current_step}. It should be within the range [0, {len(self.df) - 1}].")
         
@@ -47,7 +41,7 @@ class StockTradingEnv(gym.Env):
     def _take_action(self, action):
         current_price = self.df.loc[self.current_step, 'Close']
         
-        if action == 1:  # Buy
+        if action == 1: 
             if self.balance > current_price:
                 self.holdings += self.balance // current_price
                 self.balance -= self.holdings * current_price
@@ -58,7 +52,7 @@ class StockTradingEnv(gym.Env):
                     'type': 'buy'
                 })
 
-        elif action == 2:  # Sell
+        elif action == 2:  
             if self.holdings > 0:
                 self.balance += self.holdings * current_price
                 self.trades.append({
@@ -69,15 +63,12 @@ class StockTradingEnv(gym.Env):
                 })
                 self.holdings = 0
 
-        # Update net worth
         self.net_worth = self.balance + self.holdings * current_price
         
-        # Track the maximum net worth achieved
         if self.net_worth > self.max_net_worth:
             self.max_net_worth = self.net_worth
 
     def reset(self):
-        # Reset environment state
         self.balance = self.initial_balance
         self.holdings = 0
         self.net_worth = self.initial_balance
@@ -86,7 +77,7 @@ class StockTradingEnv(gym.Env):
         if self.df.empty:
             raise ValueError("DataFrame is empty. Please check your data loading process.")
         
-        self.current_step = 0  # Start at the first step
+        self.current_step = 0  
         print(f"Environment reset. Starting at step index: {self.current_step}")
 
         return self._get_observation()
@@ -98,7 +89,7 @@ class StockTradingEnv(gym.Env):
         if self.current_step >= len(self.df):
             print(f"End of data reached at step: {self.current_step - 1}, resetting to 0.")
             self.current_step = 0
-            done = True  # End of episode
+            done = True  
         else:
             done = False
 

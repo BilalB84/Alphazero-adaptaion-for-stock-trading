@@ -55,16 +55,13 @@ class MCTS:
             node = root
             search_path = [node]
             
-            # Selection
             while node.is_expanded:
                 dynamic_c_puct = self.c_puct / (1 + len(search_path) * 0.1)
                 node = node.select_child(dynamic_c_puct)
                 search_path.append(node)
             
-            # Expansion
             state_tensor = torch.tensor(node.state, dtype=torch.float32).unsqueeze(0)
             
-            # Normalize the state tensor
             state_tensor = (state_tensor - state_tensor.mean()) / (state_tensor.std() + 1e-5)
             
             self.model.eval()
@@ -75,9 +72,8 @@ class MCTS:
             if not node.is_expanded:
                 node.expand(policy)
             
-            # Backpropagation with value clipping
             for node in reversed(search_path):
-                value = np.clip(value, -1, 1)  # Clip the value to the range [-1, 1]
+                value = np.clip(value, -1, 1)  
                 node.update(value)
                 value = -value
 

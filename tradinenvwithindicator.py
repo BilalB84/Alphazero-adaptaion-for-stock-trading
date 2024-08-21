@@ -4,7 +4,6 @@ from gym import spaces
 import pandas as pd
 
 class StockTradingEnvWithIndicators(gym.Env):
-    """A custom environment for stock trading using historical data and trading indicators."""
     
     def __init__(self, df):
         super(StockTradingEnvWithIndicators, self).__init__()
@@ -12,7 +11,6 @@ class StockTradingEnvWithIndicators(gym.Env):
         self.df = df
         self.current_step = 0
 
-        # Initial conditions
         self.initial_balance = 10000
         self.balance = self.initial_balance
         self.holdings = 0
@@ -20,26 +18,20 @@ class StockTradingEnvWithIndicators(gym.Env):
         self.max_net_worth = self.initial_balance
         self.trades = []
 
-        # Define action space: 0 = hold, 1 = buy, 2 = sell
         self.action_space = spaces.Discrete(3)
 
-        # Define observation space: Adding custom indicators (e.g., 10 features)
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=(10,), dtype=np.float32
         )
         
-        # Ensure the indicators are calculated in the DataFrame
         self._add_indicators()
 
     def _add_indicators(self):
-        """Adds custom trading indicators to the DataFrame."""
-        # Simple Moving Average (SMA)
+
         self.df['SMA'] = self.df['Close'].rolling(window=14).mean()
 
-        # Exponential Moving Average (EMA)
         self.df['EMA'] = self.df['Close'].ewm(span=14, adjust=False).mean()
 
-        # Relative Strength Index (RSI)
         delta = self.df['Close'].diff(1)
         gain = delta.where(delta > 0, 0)
         loss = -delta.where(delta < 0, 0)
@@ -48,18 +40,15 @@ class StockTradingEnvWithIndicators(gym.Env):
         rs = avg_gain / avg_loss
         self.df['RSI'] = 100 - (100 / (1 + rs))
 
-        # Moving Average Convergence Divergence (MACD)
         short_ema = self.df['Close'].ewm(span=12, adjust=False).mean()
         long_ema = self.df['Close'].ewm(span=26, adjust=False).mean()
         self.df['MACD'] = short_ema - long_ema
         self.df['Signal Line'] = self.df['MACD'].ewm(span=9, adjust=False).mean()
 
-        # Bollinger Bands
         self.df['20_SMA'] = self.df['Close'].rolling(window=20).mean()
         self.df['Upper Band'] = self.df['20_SMA'] + (self.df['Close'].rolling(window=20).std() * 2)
         self.df['Lower Band'] = self.df['20_SMA'] - (self.df['Close'].rolling(window=20).std() * 2)
 
-        # Fill NaN values
         self.df.fillna(0, inplace=True)
 
     def _get_observation(self):
@@ -83,7 +72,7 @@ class StockTradingEnvWithIndicators(gym.Env):
     def _take_action(self, action):
         current_price = self.df.loc[self.current_step, 'Close']
         
-        if action == 1:  # Buy
+        if action == 1:  
             if self.balance > current_price:
                 self.holdings += self.balance // current_price
                 self.balance -= self.holdings * current_price
@@ -94,7 +83,7 @@ class StockTradingEnvWithIndicators(gym.Env):
                     'type': 'buy'
                 })
 
-        elif action == 2:  # Sell
+        elif action == 2:  
             if self.holdings > 0:
                 self.balance += self.holdings * current_price
                 self.trades.append({
@@ -105,21 +94,18 @@ class StockTradingEnvWithIndicators(gym.Env):
                 })
                 self.holdings = 0
 
-        # Update net worth
         self.net_worth = self.balance + self.holdings * current_price
         
-        # Track the maximum net worth achieved
         if self.net_worth > self.max_net_worth:
             self.max_net_worth = self.net_worth
 
     def reset(self):
-        # Reset environment state
         self.balance = self.initial_balance
         self.holdings = 0
         self.net_worth = self.initial_balance
         self.trades = []
         
-        self.current_step = 0  # Start at the first step
+        self.current_step = 0  
         return self._get_observation()
 
     def step(self, action):
@@ -128,7 +114,7 @@ class StockTradingEnvWithIndicators(gym.Env):
 
         if self.current_step >= len(self.df):
             self.current_step = 0
-            done = True  # End of episode
+            done = True 
         else:
             done = False
 
