@@ -4,7 +4,7 @@ from gym import spaces
 
 class StockTradingEnv(gym.Env):
     
-    def __init__(self, df):
+    def __init__(self, df, initial_balance=10000):
         super(StockTradingEnv, self).__init__()
         
         self.df = df
@@ -20,7 +20,7 @@ class StockTradingEnv(gym.Env):
         self.action_space = spaces.Discrete(3)
 
         self.observation_space = spaces.Box(
-            low=-np.inf, high=np.inf, shape=(7,), dtype=np.float32
+            low=-np.inf, high=np.inf, shape=(len(self.df.columns) + 2,), dtype=np.float32
         )
         
     def _get_observation(self):
