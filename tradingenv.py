@@ -28,7 +28,7 @@ class StockTradingEnv(gym.Env):
             raise ValueError(f"Invalid step index: {self.current_step}. It should be within the range [0, {len(self.df) - 1}].")
         
         obs = np.concatenate((
-            self.df.iloc[self.current_step].values,
+            self.df.drop(columns=['Date']).iloc[self.current_step].values,
             [self.balance, self.net_worth]
         )).astype(np.float32)
         return obs
