@@ -27,15 +27,10 @@ class StockTradingEnv(gym.Env):
         if self.current_step < 0 or self.current_step >= len(self.df):
             raise ValueError(f"Invalid step index: {self.current_step}. It should be within the range [0, {len(self.df) - 1}].")
         
-        obs = np.array([
-            self.df.loc[self.current_step, 'Open'],
-            self.df.loc[self.current_step, 'High'],
-            self.df.loc[self.current_step, 'Low'],
-            self.df.loc[self.current_step, 'Close'],
-            self.balance,
-            self.holdings,
-            self.net_worth
-        ])
+        obs = np.concatenate((
+            self.df.iloc[self.current_step].values,
+            [self.balance, self.net_worth]
+        )).astype(np.float32)
         return obs
 
     def _take_action(self, action):
